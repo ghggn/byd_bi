@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">小迪电池</string>
+    <string name="notification_channel_name">电池蓝牙连接</string>
+    <string name="notification_channel_description">显示当前电池连接和读取状态</string>
+</resources>
