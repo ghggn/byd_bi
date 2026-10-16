@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fitInside
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,6 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -70,6 +73,7 @@ fun DashboardScreen(
   onDisconnect: () -> Unit,
   onRefresh: () -> Unit,
   onSetRefreshInterval: (Long) -> Unit,
+  onSetAutoScanEnabled: (Boolean) -> Unit,
 ) {
   val uiState by state.collectAsStateWithLifecycle()
   var showRefreshSettings by remember { mutableStateOf(false) }
@@ -78,6 +82,9 @@ fun DashboardScreen(
   }
   LaunchedEffect(autoConnectRequests) {
     autoConnectRequests.collect(onConnect)
+  }
+  LaunchedEffect(uiState.autoScanEnabled) {
+    if (uiState.autoScanEnabled) onScan()
   }
   Scaffold(
     topBar = {
@@ -88,20 +95,20 @@ fun DashboardScreen(
             Text(
               "本地蓝牙 · 只读",
               style = MaterialTheme.typography.labelSmall,
+
               color = MaterialTheme.colorScheme.onSurfaceVariant
             )
           }
         },
         actions = {
           TextButton(
-            modifier = Modifier.width(92.dp),
             onClick = onRefresh,
             enabled = uiState.phase == ConnectionPhase.READY && !uiState.isRefreshing,
           ) {
             Text(
               if (uiState.isRefreshing) "刷新中" else "刷新",
               maxLines = 1,
-              fontWeight = FontWeight.Bold,
+              fontWeight = FontWeight.Medium,
               color = when {
                 uiState.readFailed -> MaterialTheme.colorScheme.error
                 uiState.isRefreshing -> MaterialTheme.colorScheme.primary
@@ -180,9 +187,28 @@ fun DashboardScreen(
   if (showRefreshSettings) {
     AlertDialog(
       onDismissRequest = { showRefreshSettings = false },
-      title = { Text("刷新频率") },
+      title = { Text("设置") },
       text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+          ) {
+            Column(Modifier.weight(1f).padding(end = 12.dp)) {
+              Text("自动扫描", style = MaterialTheme.typography.bodyLarge)
+              Text(
+                "启动应用时搜索附近电池",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+            Switch(
+              checked = uiState.autoScanEnabled,
+              onCheckedChange = onSetAutoScanEnabled,
+            )
+          }
+          HorizontalDivider()
           Text("刷新间隔：${intervalDraft.toInt()} ms")
           Slider(
             value = intervalDraft,

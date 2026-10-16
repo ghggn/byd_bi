@@ -14,6 +14,7 @@ class DashboardViewModel(
   fun stopScan() = repository.stopScan()
   fun refresh() = repository.refresh()
   fun setRefreshInterval(intervalMs: Long) = repository.setRefreshInterval(intervalMs)
+  fun setAutoScanEnabled(enabled: Boolean) = repository.setAutoScanEnabled(enabled)
 
   class Factory(private val repository: AndroidBleRepository) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")

@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
           onDisconnect = { disconnectService() },
           onRefresh = dashboardViewModel::refresh,
                     onSetRefreshInterval = dashboardViewModel::setRefreshInterval,
+          onSetAutoScanEnabled = dashboardViewModel::setAutoScanEnabled,
         )
       }
     }

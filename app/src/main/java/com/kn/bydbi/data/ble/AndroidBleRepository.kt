@@ -62,6 +62,7 @@ class AndroidBleRepository(context: Context) {
     KEY_REFRESH_INTERVAL_MS,
     DEFAULT_POLL_INTERVAL_MS,
   ).coerceIn(MIN_POLL_INTERVAL_MS, MAX_POLL_INTERVAL_MS)
+  private val savedAutoScanEnabled = preferences.getBoolean(KEY_AUTO_SCAN_ENABLED, false)
   private val bluetoothManager = appContext.getSystemService(BluetoothManager::class.java)
   private val adapter: BluetoothAdapter? get() = bluetoothManager?.adapter
   private val callbackThread = HandlerThread("byd-ble-callbacks").apply { start() }
@@ -69,7 +70,10 @@ class AndroidBleRepository(context: Context) {
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
   private val mutableState = MutableStateFlow(
-    BatteryUiState(refreshIntervalMs = savedRefreshIntervalMs)
+    BatteryUiState(
+      refreshIntervalMs = savedRefreshIntervalMs,
+      autoScanEnabled = savedAutoScanEnabled,
+    )
   )
   val state: StateFlow<BatteryUiState> = mutableState.asStateFlow()
   private val autoConnectChannel = Channel<BatteryDevice>(capacity = Channel.BUFFERED)
@@ -271,6 +275,11 @@ class AndroidBleRepository(context: Context) {
     preferences.edit { putLong(KEY_REFRESH_INTERVAL_MS, intervalMs) }
     mutableState.update { it.copy(refreshIntervalMs = intervalMs) }
     pollIntervalChanges.trySend(intervalMs)
+  }
+
+  fun setAutoScanEnabled(enabled: Boolean) {
+    preferences.edit { putBoolean(KEY_AUTO_SCAN_ENABLED, enabled) }
+    mutableState.update { it.copy(autoScanEnabled = enabled) }
   }
 
   private val scanTimeout = Runnable {
@@ -782,6 +791,7 @@ class AndroidBleRepository(context: Context) {
     private const val PREFERENCES_NAME = "battery_connection"
     private const val KEY_LAST_DEVICE_ADDRESS = "last_connected_address"
     private const val KEY_REFRESH_INTERVAL_MS = "refresh_interval_ms"
+    private const val KEY_AUTO_SCAN_ENABLED = "auto_scan_enabled"
     private const val MIN_POLL_INTERVAL_MS = 500L
     private const val MAX_POLL_INTERVAL_MS = 10_000L
     private const val DEFAULT_POLL_INTERVAL_MS = 2_000L

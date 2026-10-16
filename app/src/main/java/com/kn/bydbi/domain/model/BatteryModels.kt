@@ -77,6 +77,7 @@ data class BatteryUiState(
   val scanning: Boolean = false,
   val isRefreshing: Boolean = false,
   val readFailed: Boolean = false,
+  val autoScanEnabled: Boolean = false,
   val devices: List<BatteryDevice> = emptyList(),
   val selectedDevice: BatteryDevice? = null,
   val snapshot: BatterySnapshot? = null,
